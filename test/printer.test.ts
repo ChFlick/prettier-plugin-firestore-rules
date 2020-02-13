@@ -1,4 +1,3 @@
-import { resolve } from 'path';
 import { format } from 'prettier';
 
 describe('the parser', () => {
