@@ -1,0 +1,40 @@
+{
+    "name": "prettier-plugin-firestore-rules",
+    "version": "0.0.1",
+    "description": "Firestore Rules plugin for prettier",
+    "main": "plugin.js",
+    "scripts": {
+        "build": "tsc -p ./",
+        "compile:grammar": "pegjs -o src/parser/parser.js src/parser/grammar.pegjs",
+        "test": "jest"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ChFlick/prettier-plugin-firestore-rules.git"
+    },
+    "keywords": [
+        "prettier",
+        "firestore"
+    ],
+    "author": {
+        "name": "Christoph Flick",
+        "email": "christophflick@gmx.de"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/ChFlick/prettier-plugin-firestore-rules/issues"
+    },
+    "homepage": "https://github.com/ChFlick/prettier-plugin-firestore-rules",
+    "dependencies": {
+        "prettier": "^1.19.1"
+    },
+    "devDependencies": {
+        "@types/jest": "^25.1.2",
+        "@types/pegjs": "^0.10.1",
+        "@types/prettier": "^1.19.0",
+        "jest": "^25.1.0",
+        "pegjs": "^0.10.0",
+        "ts-jest": "^25.2.0",
+        "typescript": "^3.7.5"
+    }
+}
