@@ -1,16 +1,8 @@
 import { Doc, FastPath, Parser, Plugin } from 'prettier';
 import { parse } from './parser/parser';
 
-function print(path: FastPath, options: object, print: (path: FastPath) => Doc): Doc {
-    const doc: Doc = '';
-
-    path.each(n => n.each(n => console.log('n', n, 'node', n.getNode())));
-    console.log('PRINT!');
-
-    console.log(path, options, print);
-    console.log('name', path.getName(), 'value', path.getValue());
-
-    return doc;
+function print(_path: FastPath, _options: object, _print: (path: FastPath) => Doc): Doc {
+    return 'nothing happening yet...';
 }
 
 const p: Parser = {
