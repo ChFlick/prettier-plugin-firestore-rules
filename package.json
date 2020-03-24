@@ -27,22 +27,22 @@
     },
     "homepage": "https://github.com/ChFlick/prettier-plugin-firestore-rules",
     "dependencies": {
-        "prettier": "^1.19.1"
+        "prettier": "^2.0.2"
     },
     "devDependencies": {
-        "@types/chai": "^4.2.9",
-        "@types/jest": "^25.1.2",
-        "@types/node": "^13.7.1",
+        "@types/chai": "^4.2.11",
+        "@types/jest": "^25.1.4",
+        "@types/node": "^13.9.3",
         "@types/pegjs": "^0.10.1",
-        "@types/prettier": "^1.19.0",
-        "@typescript-eslint/eslint-plugin": "^2.19.2",
-        "@typescript-eslint/parser": "^2.19.2",
+        "@types/prettier": "^1.19.1",
+        "@typescript-eslint/eslint-plugin": "^2.25.0",
+        "@typescript-eslint/parser": "^2.25.0",
         "chai": "^4.2.0",
         "eslint": "^6.8.0",
         "jest": "^25.1.0",
         "pegjs": "^0.10.0",
-        "ts-jest": "^25.2.0",
-        "typescript": "^3.7.5"
+        "ts-jest": "^25.2.1",
+        "typescript": "^3.8.3"
     },
     "engines": {
         "node": ">=11"
