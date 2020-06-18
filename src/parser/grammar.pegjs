@@ -14,7 +14,7 @@ VersionNumber
   = "1"/"2"
  
 Service
-  = "service cloud.firestore" EOL
+  = "service" _ ("cloud.firestore"/"firebase.storage") EOL
   "{" EOL 
   content:Content EOL
   "}" EOL
