@@ -94,8 +94,13 @@ FunctionName
 FunctionParameters 
   = Word ("," _ Word)*
 FunctionBody 
-  = "return" (EOL/__) _ ConjunctedCondition EOL ";"? EOL
+  = VariableDeclaration* ReturnStatement
   
+VariableDeclaration
+  = "let" (EOL/__) _ Word _ "=" _ ConjunctedCondition EOL ";"? EOL
+ReturnStatement
+  = "return" (EOL/__) _ ConjunctedCondition EOL ";"? EOL
+
 FunctionCall
   = name: WordDotWord _ "(" _ params: FunctionCallParameters? _ ")"
   { return [name, params]}
