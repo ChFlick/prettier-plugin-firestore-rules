@@ -1,5 +1,6 @@
 Main
-  = Version? Service
+  = version:Version? service:Service
+  { return {version, service}; }
 
 AllowToken    = "allow"
 IfToken       = "if"
@@ -7,18 +8,17 @@ MatchToken    = "match"
 VersionToken  = "rules_version"
 
 Version
-  = VersionToken _ "=" _ "'" vn:VersionNumber "'" _ ";"? EOL
-  { return ["version", vn]; }
-  
+  = t: VersionToken _ "=" _ "'" vn:VersionNumber "'" _ ";"? EOL
+  { return [t, "=", vn] }  
 VersionNumber
   = "1"/"2"
  
 Service
-  = "service" _ ("cloud.firestore"/"firebase.storage") EOL
+  = "service" _ type:("cloud.firestore"/"firebase.storage") EOL
   "{" EOL 
   content:Content EOL
   "}" EOL
-  { return ["service", content]; }
+  { return {"head": ["service", type], "content": content}; }
 
 Content
   = left: Matcher right: (_ Matcher)*
@@ -29,15 +29,19 @@ Matcher
     "{" EOL
     matcherBody: (Matcher/Allow/Function/Comment)+ _
     "}" EOL
-  { return ["match", path, matcherBody]; }
+  { return {"head": ["match", path], "content": matcherBody}; }
   
 Allow 
   = _ AllowToken __ scope: AllowScope ":" (EOL/__) _
   IfToken __ condition: ConjunctedCondition
-  { return ["allow", scope, condition]; }
+  { return {"head": ["allow", scope, condition]}; }
 
 ConjunctedCondition
-  = Condition (_ EOL ("&&" / "||") _ EOL _ Condition)*
+  = c1: Condition cn: SubCondition*
+  { return [c1, cn];}
+SubCondition
+  = _ EOL ("&&" / "||") _ EOL _ Condition
+  
 Condition
   = (
     "!" Condition
@@ -71,7 +75,7 @@ LiteralArray
   
 Function
   = _ "function" __ name:FunctionName "(" params:FunctionParameters? ")" _ "{" (EOL/__) body:FunctionBody (EOL/__) "}"
-  { return ["function", name, params, body]; }
+  { return {"head": ["function", name], params, "content": body.flatMap(x => x)}; }
 
 MatcherPath 
   = "/" first: PathSegment following: MatcherPath*
@@ -92,12 +96,14 @@ AllowScopes
 FunctionName
   = Word
 FunctionParameters 
-  = Word ("," _ Word)*
+  = p1: Word pn:("," _ Word)*
+  { return [p1, ...pn.flatMap(x => x).filter(x => x && x !== "," && x !== "")]; }
 FunctionBody 
   = VariableDeclaration* ReturnStatement
   
 VariableDeclaration
-  = "let" (EOL/__) _ Word _ "=" _ ConjunctedCondition EOL ";"? EOL
+  = "let" (EOL/__) _ varName: Word _ "=" _ varDecl: ConjunctedCondition EOL ";"? EOL
+  { return { "head": ["let", varName, "=", varDecl] }; }
 ReturnStatement
   = "return" (EOL/__) _ ConjunctedCondition EOL ";"? EOL
 
@@ -113,7 +119,11 @@ FunctionCallParameter
 //  / WordDotWord / String / DecimalLiteral / SlashString
   
 SlashString
-  = "/" (Word / "$(" Word ")") SlashString*
+  = "/" first:WordOrDollarWord following: SlashString*
+  { return "/" + first + following.flatMap(x => x).join(""); }
+WordOrDollarWord
+  = Word / "$(" Word ")"
+  { return text() }
 
 TrueFalse
   = "true" / "false"
@@ -139,7 +149,7 @@ EOL
 
 Comment "comment"
   = _ "//" comment: (!LineTerminator .)*
-  { return comment.flatMap(x => x).join("").trim(); }
+  { return { "head": ["//", comment.flatMap(x => x).join("").trim()]}; }
 
 DecimalLiteral
   = DecimalIntegerLiteral "." DecimalDigit* 
