@@ -40,7 +40,8 @@ ConjunctedCondition
   = c1: Condition cn: SubCondition*
   { return [c1, cn].flatMap(x => x).filter(x => x && x !== "");}
 SubCondition
-  = _ EOL ("&&" / "||") _ EOL _ Condition
+  = _ EOL condOp: ("&&" / "||") _ EOL _ cond: Condition
+  { return [condOp, Array.isArray(cond) ? cond.flatMap(x => x).filter(x => x && x !== "") : cond]; }
   
 Condition
   = (
@@ -74,8 +75,11 @@ Literal
   = String / SlashString / DecimalLiteral / LiteralArray
   
 LiteralArray
-  = "[" (Literal (_ "," _ Literal)*)? "]"
-  
+  = "[" Literals? "]"
+  { return { "type": "Array", values: []}; }
+Literals
+  = l1: Literal ln: (_ "," _ Literal)*
+  { return [l1, ln].flatMap(x => x).filter(x => x && x !== "," && x !== "");  }
   
 Function
   = _ "function" __ name:FunctionName "(" params:FunctionParameters? ")" _ "{" (EOL/__) body:FunctionBody (EOL/__) "}"
@@ -208,3 +212,4 @@ __ "required_whitespace"
 _ "whitespace"
   = [ \t\n\r]*
   {}
+  
