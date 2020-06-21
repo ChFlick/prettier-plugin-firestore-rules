@@ -34,33 +34,37 @@ Matcher
 Allow 
   = _ AllowToken __ scope: AllowScope ":" (EOL/__) _
   IfToken __ condition: ConjunctedCondition
-  { return {"head": ["allow", scope, condition]}; }
+  { return { "type": "allow", scope, condition }; }
 
 ConjunctedCondition
   = c1: Condition cn: SubCondition*
-  { return [c1, cn];}
+  { return [c1, cn].flatMap(x => x).filter(x => x && x !== "");}
 SubCondition
   = _ EOL ("&&" / "||") _ EOL _ Condition
   
 Condition
   = (
-    "!" Condition
-  / "(" EOL c: Condition EOL ")" EOL
-   { return ["(", c, ")"]; }
+    "!" condition: Condition
+    { return condition; }
+  / "(" EOL condition: Condition EOL ")" EOL
+    { return condition; }
   / left: (ValueStatement / Literal) _ op: ValueOperator _ right: (ValueStatement / Literal)
   	{ return [left, op, right]; }  
   / left: (ValueStatement / Literal) _ "is" _ right: DataType
   	{ return [left, "is", right]; }  
-  / ValueStatement / Literal
+  / vs: ValueStatement 
+  	{ return vs; }   
+  / Literal
   	{ return text(); }
-  ) (";" EOL / EOL)
+  ) (";" EOL {} / EOL {})
   
 ValueStatement
-  = "[" _ ValueStatement _ "]"
+  = "[" _ statement: ValueStatement _ "]"
+    { return text(); }
   / left: FunctionCall "." right: ValueStatement
-  	{ return left + "." + right; }
-  / FunctionCall
-  	{ return text(); }
+  	{ return [left, right]; }
+  / fc: FunctionCall
+  	{ return fc; }
   / left: WordDotWord "." right: ValueStatement
   	{ return left + "." + right; }
   / WordDotWord
@@ -105,11 +109,12 @@ VariableDeclaration
   = "let" (EOL/__) _ varName: Word _ "=" _ varDecl: ConjunctedCondition EOL ";"? EOL
   { return { "head": ["let", varName, "=", varDecl] }; }
 ReturnStatement
-  = "return" (EOL/__) _ ConjunctedCondition EOL ";"? EOL
+  = "return" (EOL/__) _ condition: ConjunctedCondition EOL ";"? EOL
+  { return { "head": "return", condition}; }
 
 FunctionCall
   = name: WordDotWord _ "(" _ params: FunctionCallParameters? _ ")"
-  { return [name, params]}
+  { return { "type": "FunctionCall", name, params }; }
 FunctionCallParameters
   = left: FunctionCallParameter right: ("," _ FunctionCallParameter)*
   { return [left, ...right.map(v => v[2])]; } 
@@ -186,6 +191,7 @@ DataType
 
 LineTerminator
   = [\n\r\u2028\u2029]
+  {}
   
 LineTerminatorSequence "end of line"
   = "\n"
@@ -193,6 +199,7 @@ LineTerminatorSequence "end of line"
   / "\r"
   / "\u2028"
   / "\u2029"
+  {}
 
 __ "required_whitespace"
   = [ \t\n\r]+ 
