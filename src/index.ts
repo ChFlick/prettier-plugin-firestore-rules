@@ -1,12 +1,9 @@
-import { Doc, FastPath, Parser, Plugin } from 'prettier';
+import { Parser, Plugin } from 'prettier';
 import { parse } from './parser/parser';
-
-function print(_path: FastPath, _options: object, _print: (path: FastPath) => Doc): Doc {
-    return 'nothing happening yet...';
-}
+import { print } from './printer';
 
 const p: Parser = {
-    parse: (text: string) => parse(text),
+    parse,
     astFormat: 'firestore-ast',
     locStart: (node: any) => {
         console.log('locStart', node);
@@ -16,7 +13,7 @@ const p: Parser = {
         console.log('locEnd', node);
         return 3;
     },
-}
+};
 
 export const languages = [
     {
@@ -36,10 +33,10 @@ export const printers = {
     'firestore-ast': {
         print
     }
-}
+};
 
 const plugin: Plugin = {
     languages,
     parsers,
     printers,
-}
+};

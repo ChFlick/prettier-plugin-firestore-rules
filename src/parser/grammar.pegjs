@@ -1,6 +1,6 @@
 Main
   = version:Version? service:Service
-  { return {version, service}; }
+  { return {"type": "root", version, service}; }
 
 AllowToken    = "allow"
 IfToken       = "if"
@@ -18,7 +18,7 @@ Service
   "{" EOL 
   content:Content EOL
   "}" EOL
-  { return {"head": ["service", type], "content": content}; }
+  { return {"type": "service", "head": ["service", type], "content": content}; }
 
 Content
   = left: Matcher right: (_ Matcher)*
