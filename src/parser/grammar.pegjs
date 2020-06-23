@@ -29,12 +29,17 @@ Matcher
     "{" EOL
     matcherBody: (Matcher/Allow/Function/Comment)+ _
     "}" EOL
-  { return {"head": ["match", path], "content": matcherBody}; }
+  { return {"type": "match", path, "content": matcherBody}; }
   
 Allow 
-  = _ AllowToken __ scope: AllowScope ":" (EOL/__) _
+  = _ AllowToken __ scopes: AllowScopes ":" (EOL/__) _
   IfToken __ condition: ConjunctedCondition
-  { return { "type": "allow", scope, condition }; }
+  { return { "type": "allow", scopes, condition }; }
+AllowScopes 
+  = mainsope:AllowScope _ morescopes:("," _ AllowScope)*
+   { return [mainsope, ...morescopes.flatMap(x => x).filter(x => x && x !== "," && x !== "")] }
+AllowScope 
+  = "write"/"read"/"get"/"list"/"update"/"delete"/"create"
 
 ConjunctedCondition
   = c1: Condition cn: SubCondition*
@@ -83,7 +88,7 @@ Literals
   
 Function
   = _ "function" __ name:FunctionName "(" params:FunctionParameters? ")" _ "{" (EOL/__) body:FunctionBody (EOL/__) "}"
-  { return {"head": ["function", name], params, "content": body.flatMap(x => x)}; }
+  { return {"type": "function-declaration", name, params, "content": body.flatMap(x => x)}; }
 
 MatcherPath 
   = "/" first: PathSegment following: MatcherPath*
@@ -94,12 +99,6 @@ PathSegment
   { return text(); }
   / "{" Word ("=**")? "}"
   { return text(); }
-
-AllowScope 
-  = mainsope:AllowScopes _ morescopes:("," _ AllowScopes)*
-   { return [mainsope, ...morescopes.flatMap(x => x).filter(x => x && x !== "," && x !== "")] }
-AllowScopes 
-  = "write"/"read"/"get"/"list"/"update"/"delete"/"create"
 
 FunctionName
   = Word
@@ -118,7 +117,7 @@ ReturnStatement
 
 FunctionCall
   = name: WordDotWord _ "(" _ params: FunctionCallParameters? _ ")"
-  { return { "type": "FunctionCall", name, params }; }
+  { return { "type": "function-call", name, params }; }
 FunctionCallParameters
   = left: FunctionCallParameter right: ("," _ FunctionCallParameter)*
   { return [left, ...right.map(v => v[2])]; } 

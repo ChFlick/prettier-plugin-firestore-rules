@@ -12,6 +12,7 @@ describe('the parser', () => {
         }`;
 
     const result = format(basicRule, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       parser: 'firestore' as any,
       plugins: ['src/index.ts']
     });

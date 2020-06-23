@@ -7,7 +7,8 @@
         "build": "tsc -p ./",
         "compile:grammar": "pegjs -o src/parser/parser.js src/parser/grammar.pegjs",
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-        "test": "jest"
+        "test": "jest",
+        "prepublish": "yarn compile:grammar && yarn build && yarn lint && yarn test"
     },
     "repository": {
         "type": "git",
