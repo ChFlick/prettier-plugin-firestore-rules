@@ -9,6 +9,7 @@ const {
     indent,
     join,
     line,
+    softline
 } = doc.builders;
 
 export function print(path: FastPath, _options: ParserOptions, print: PrintFn): Doc {
@@ -27,10 +28,12 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
 
         case 'service':
             return concat([
-                join(' ', [...node.head, '{']),
-                hardline,
+                group(join(' ', [...node.head, '{'])),
                 indent(
-                    join(hardline, path.map(print, 'content'))
+                    concat([
+                        hardline,
+                        join(hardline, path.map(print, 'content'))
+                    ])
                 ),
                 hardline,
                 '}'
@@ -39,61 +42,100 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
         case 'match':
             return concat([
                 join(' ', ['match', node.path, '{']),
-                hardline,
                 indent(
-                    join(hardline, path.map(print, 'content'))
+                    concat([
+                        hardline,
+                        join(hardline, path.map(print, 'content'))
+                    ])
                 ),
                 hardline,
                 '}'
             ]);
 
         case 'allow':
-            return concat([
-                'allow',
-                ' ',
-                join(', ', node.scopes),
-                ':',
-                line,
-                'if',
-                ' ',
-                // join(hardline, path.map(print, 'content')),
-                ';',
-            ]);
+            return group(
+                concat([
+                    'allow',
+                    ' ',
+                    join(', ', node.scopes),
+                    ':',
+                    line,
+                    'if',
+                    ' ',
+                    join(hardline, path.map(print, 'content')),
+                    ';',
+                ])
+            );
 
         case 'function-declaration':
             return concat([
-                'fuction',
+                'function',
                 ' ',
                 node.name,
-                ' ',
                 group(
                     concat([
                         '(',
-                        line,
+                        softline,
                         indent(
                             join(
-                                concat([', ', line]),
+                                concat([',', line]),
                                 node.params
                             )
                         ),
-                        line,
+                        softline,
                         ')'
                     ])
                 ),
                 ' {',
-                hardline,
                 indent(
-                    join(hardline, path.map(print, 'content'))
+                    concat([
+                        hardline,
+                        join(hardline, path.map(print, 'content'))
+                    ])
                 ),
                 hardline,
                 '}'
             ]);
+        case 'function-call':
+            return concat([
+                node.name,
+                group(
+                    concat([
+                        '(',
+                        softline,
+                        indent(
+                            join(
+                                concat([', ', line]),
+                                path.map(print, 'params')
+                            )
+                        ),
+                        softline,
+                        ')'
+                    ])
+                )
+            ]);
+        case 'return':
+            return group(concat([
+                'return',
+                line,
+                join('.', path.map(print, 'content'))
+            ]));
+        case 'operation':
+            return join(' ', [
+                path.call(print, 'left'),
+                node.operation,
+                path.call(print, 'right')
+            ]);
+        case 'text':
+            return node.text;
     }
 
     // throw new Error('Could not find a printer for node type ' + node.type);
 }
 
-type Node = RootNode | ServiceNode | MatcherNode | AllowNode | FunctionDeclarationNode
+type Node = RootNode | ServiceNode | MatcherNode | AllowNode |
+    FunctionDeclarationNode | FunctionCallNode | ReturnNode | OperationNode |
+    TextNode;
 
 type RootNode = {
     type: 'root';
@@ -124,4 +166,27 @@ type FunctionDeclarationNode = {
     name: string;
     params: string[];
     content: object[];
+}
+
+type FunctionCallNode = {
+    type: 'function-call';
+    name: string;
+    params: string[];
+}
+
+type ReturnNode = {
+    type: 'return';
+    content: object[];
+}
+
+type OperationNode = {
+    type: 'operation';
+    left: string;
+    operation: string;
+    right: string;
+}
+
+type TextNode = {
+    type: 'text';
+    text: string;
 }

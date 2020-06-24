@@ -33,8 +33,8 @@ Matcher
   
 Allow 
   = _ AllowToken __ scopes: AllowScopes ":" (EOL/__) _
-  IfToken __ condition: ConjunctedCondition
-  { return { "type": "allow", scopes, condition }; }
+  IfToken __ content: ConjunctedCondition
+  { return { "type": "allow", scopes, content }; }
 AllowScopes 
   = mainsope:AllowScope _ morescopes:("," _ AllowScope)*
    { return [mainsope, ...morescopes.flatMap(x => x).filter(x => x && x !== "," && x !== "")] }
@@ -54,37 +54,37 @@ Condition
     { return condition; }
   / "(" EOL condition: Condition EOL ")" EOL
     { return condition; }
-  / left: (ValueStatement / Literal) _ op: ValueOperator _ right: (ValueStatement / Literal)
-  	{ return [left, op, right]; }  
+  / left: (ValueStatement / Literal) _ operation: ValueOperator _ right: (ValueStatement / Literal)
+  	{ return { "type": "operation", left, operation, right}; }  
   / left: (ValueStatement / Literal) _ "is" _ right: DataType
-  	{ return [left, "is", right]; }  
+  	{ return { "type": "operation", left, "operation": "is", right}; }  
   / vs: ValueStatement 
   	{ return vs; }   
   / Literal
-  	{ return text(); }
+  	{ return {"type": "text", "text": text()} }
   ) (";" EOL {} / EOL {})
   
 ValueStatement
   = "[" _ statement: ValueStatement _ "]"
-    { return text(); }
+    { return {"type": "text", "text": text()}; }
   / left: FunctionCall "." right: ValueStatement
   	{ return [left, right]; }
   / fc: FunctionCall
   	{ return fc; }
   / left: WordDotWord "." right: ValueStatement
-  	{ return left + "." + right; }
+  	{ return [left, right]; }
   / WordDotWord
-  	{ return text(); }
-    
-Literal
-  = String / SlashString / DecimalLiteral / LiteralArray
-  
+  	{ return {"type": "text", "text": text()}; }
+      
 LiteralArray
   = "[" Literals? "]"
   { return { "type": "Array", values: []}; }
 Literals
   = l1: Literal ln: (_ "," _ Literal)*
   { return [l1, ln].flatMap(x => x).filter(x => x && x !== "," && x !== "");  }
+Literal
+  = (String / SlashString / DecimalLiteral / LiteralArray)
+  { return { "type": "text", "text": text() }; }
   
 Function
   = _ "function" __ name:FunctionName "(" params:FunctionParameters? ")" _ "{" (EOL/__) body:FunctionBody (EOL/__) "}"
@@ -111,9 +111,10 @@ FunctionBody
 VariableDeclaration
   = "let" (EOL/__) _ varName: Word _ "=" _ varDecl: ConjunctedCondition EOL ";"? EOL
   { return { "head": ["let", varName, "=", varDecl] }; }
+  
 ReturnStatement
-  = "return" (EOL/__) _ condition: ConjunctedCondition EOL ";"? EOL
-  { return { "head": "return", condition}; }
+  = "return" (EOL/__) _ content: ConjunctedCondition EOL ";"? EOL
+  { return { "type": "return", "content": Array.isArray(content) ? content.flatMap(x => x) : content };}
 
 FunctionCall
   = name: WordDotWord _ "(" _ params: FunctionCallParameters? _ ")"
@@ -132,9 +133,6 @@ SlashString
 WordOrDollarWord
   = Word / "$(" Word ")"
   { return text() }
-
-TrueFalse
-  = "true" / "false"
   
 ValueOperator
   = "=="/"!="/"&&"/"||"/"<="/">="/"<"/">"
