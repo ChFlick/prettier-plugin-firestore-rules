@@ -62,7 +62,7 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
                     line,
                     'if',
                     ' ',
-                    join(hardline, path.map(print, 'content')),
+                    indent(join(hardline, path.map(print, 'content'))),
                     ';',
                 ])
             );
@@ -96,24 +96,27 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
                 hardline,
                 '}'
             ]);
-        case 'function-call':
+        case 'function-call': {
+            const params = !node.params ? '' :
+                indent(
+                    join(
+                        concat([',', line]),
+                        path.map(print, 'params')
+                    )
+                );
             return concat([
                 node.name,
                 group(
                     concat([
                         '(',
                         softline,
-                        indent(
-                            join(
-                                concat([', ', line]),
-                                path.map(print, 'params')
-                            )
-                        ),
+                        params,
                         softline,
                         ')'
                     ])
                 )
             ]);
+        }
         case 'return':
             return group(concat([
                 'return',
@@ -122,10 +125,17 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
             ]));
         case 'operation':
             return join(' ', [
-                path.call(print, 'left'),
+                join('.', path.map(print, 'left')),
                 node.operation,
-                path.call(print, 'right')
+                join('.', path.map(print, 'right'))
             ]);
+        case 'connection':
+            return group(concat([
+                node.operator,
+                ' ',
+                ...path.map(print, 'content'),
+                softline,
+            ]));
         case 'text':
             return node.text;
     }
@@ -134,8 +144,8 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
 }
 
 type Node = RootNode | ServiceNode | MatcherNode | AllowNode |
-    FunctionDeclarationNode | FunctionCallNode | ReturnNode | OperationNode |
-    TextNode;
+    FunctionDeclarationNode | FunctionCallNode | ReturnNode |
+    OperationNode | TextNode | ConnectionNode;
 
 type RootNode = {
     type: 'root';
@@ -181,12 +191,18 @@ type ReturnNode = {
 
 type OperationNode = {
     type: 'operation';
-    left: string;
+    left: object[];
     operation: string;
-    right: string;
+    right: object[];
 }
 
 type TextNode = {
     type: 'text';
     text: string;
+}
+
+type ConnectionNode = {
+    type: 'connection';
+    operator: string;
+    content: object[];
 }

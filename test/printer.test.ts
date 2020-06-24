@@ -20,6 +20,46 @@ describe('the parser', () => {
     console.log(result);
   });
 
+  it('can format an is condition', () => {
+    const basicRule = `rules_version = '2';
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            match /{document=**} {
+              allow write, read: if request.resource.data.asdf is int;
+            }
+          }
+        }`;
+
+    const result = format(basicRule, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parser: 'firestore' as any,
+      plugins: ['src/index.ts']
+    });
+
+    console.log(result);
+  });
+
+  it('can format &&/|| connected conditions', () => {
+    const basicRule = `rules_version = '2';
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            match /{document=**} {
+              allow write, read: if request.resource.data.asdf is int &&
+                                    request.resource.data.asdf == 333 ||
+                                    abcdef == 22;
+            }
+          }
+        }`;
+
+    const result = format(basicRule, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parser: 'firestore' as any,
+      plugins: ['src/index.ts']
+    });
+
+    console.log(result);
+  });
+
   it('can format more complex rules', () => {
     const rules = `rules_version = '2';
     service cloud.firestore {
@@ -36,8 +76,50 @@ describe('the parser', () => {
                 allow update: if false;
              }
           }
-        }
-      }`;
+    
+          match /users/{userId} {
+             allow write, read: if false;
+          }
+    
+          match /cars/{carId} {
+             match /roles/{roleId} {
+                allow delete: if get(/databases/$(database)/documents/configurations/someData).data.values.hasAll(request.resource.data.someData)
+                             && request.resource.data.keys().hasOnly(['name', 'someData'])
+                             && request.resource.data.size() == 2
+                             && request.resource.data.name is string
+                             && request.resource.data.someData is list
+                             && hasValue('bla', request.auth.uid, carId);
+    
+                allow read: if hasValue('bla', request.auth.uid, carId);
+             }
+    
+             match /oneLevel/{one} {
+                match /twoLevel/{two} {
+                   match /threeLevel/{three} {
+                      allow write, read: if request.resource.data.asdf is int &&
+                                        request.resource.data.asdf == 333;
+                   }
+                }
+             }
+    
+             match /store/current/{doc=**} {
+                allow read: if request.auth.uid != null;
+    
+                match /slots/{slotId} {
+                   allow write: if hasValue('writeSLots', request.auth.uid, carId)
+                                   && request.resource.data.keys().hasOnly(['rank', 'name', 'description', 'imageUrl', 'timeSlot'])
+                                   && request.resource.data.rank is int
+                                   && request.resource.data.name is string
+                                   && request.resource.data.description is string
+                                   && request.resource.data.imageUrl is path
+                                   && request.resource.data.timeSlot.from is timestamp
+                                   && request.resource.data.timeSlot.to is timestamp
+                                   && request.resource.data.timeSlot.to > request.resource.data.timeSlot.from;
+                }
+             }
+          }
+       }
+    }`;
 
     const result = format(rules, {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

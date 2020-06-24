@@ -46,7 +46,7 @@ ConjunctedCondition
   { return [c1, cn].flatMap(x => x).filter(x => x && x !== "");}
 SubCondition
   = _ EOL condOp: ("&&" / "||") _ EOL _ cond: Condition
-  { return [condOp, Array.isArray(cond) ? cond.flatMap(x => x).filter(x => x && x !== "") : cond]; }
+  { return {"type": "connection", "operator": condOp, "content": Array.isArray(cond) ? cond.flatMap(x => x).filter(x => x && x !== "") : cond}; }
   
 Condition
   = (
@@ -55,9 +55,9 @@ Condition
   / "(" EOL condition: Condition EOL ")" EOL
     { return condition; }
   / left: (ValueStatement / Literal) _ operation: ValueOperator _ right: (ValueStatement / Literal)
-  	{ return { "type": "operation", left, operation, right}; }  
+  	{ return { "type": "operation", "left": [left].flatMap(x => x), operation, "right": [right].flatMap(x => x)}; }  
   / left: (ValueStatement / Literal) _ "is" _ right: DataType
-  	{ return { "type": "operation", left, "operation": "is", right}; }  
+  	{ return { "type": "operation", "left": [left].flatMap(x => x), "operation": "is", "right": [{"type": "text", "text": right}]}; }  
   / vs: ValueStatement 
   	{ return vs; }   
   / Literal
