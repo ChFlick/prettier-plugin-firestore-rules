@@ -141,7 +141,7 @@ function peg$parse(input, options) {
       peg$startRuleFunctions = { Main: peg$parseMain },
       peg$startRuleFunction  = peg$parseMain,
 
-      peg$c0 = function(version, service) { return {"type": "root", version, service}; },
+      peg$c0 = function(version, before, service, after) { return {"type": "root", version, service, functionsBefore: before, functionsAfter: after}; },
       peg$c1 = "allow",
       peg$c2 = peg$literalExpectation("allow", false),
       peg$c3 = "if",
@@ -464,7 +464,7 @@ function peg$parse(input, options) {
   }
 
   function peg$parseMain() {
-    var s0, s1, s2;
+    var s0, s1, s2, s3, s4, s5, s6;
 
     s0 = peg$currPos;
     s1 = peg$parseVersion();
@@ -472,11 +472,39 @@ function peg$parse(input, options) {
       s1 = null;
     }
     if (s1 !== peg$FAILED) {
-      s2 = peg$parseService();
+      s2 = [];
+      s3 = peg$parseFunction();
+      while (s3 !== peg$FAILED) {
+        s2.push(s3);
+        s3 = peg$parseFunction();
+      }
       if (s2 !== peg$FAILED) {
-        peg$savedPos = s0;
-        s1 = peg$c0(s1, s2);
-        s0 = s1;
+        s3 = peg$parse_();
+        if (s3 !== peg$FAILED) {
+          s4 = peg$parseService();
+          if (s4 !== peg$FAILED) {
+            s5 = [];
+            s6 = peg$parseFunction();
+            while (s6 !== peg$FAILED) {
+              s5.push(s6);
+              s6 = peg$parseFunction();
+            }
+            if (s5 !== peg$FAILED) {
+              peg$savedPos = s0;
+              s1 = peg$c0(s1, s2, s4, s5);
+              s0 = s1;
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
       } else {
         peg$currPos = s0;
         s0 = peg$FAILED;

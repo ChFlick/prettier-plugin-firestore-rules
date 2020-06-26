@@ -60,6 +60,59 @@ describe('the parser', () => {
     console.log(result);
   });
 
+  it('can format root-level functions', () => {
+    const basicRule = `rules_version = '2';
+    function test() {
+      return true;
+    }
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            match /{document=**} {
+              allow write, read: if true;
+            }
+          }
+        }
+        function test2() {
+          return false;
+        }`;
+
+    const result = format(basicRule, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parser: 'firestore' as any,
+      plugins: ['src/index.ts']
+    });
+
+    console.log(result);
+  });
+
+  it('cannot parse functions before the rules version token', () => {
+    const basicRule = `
+    function test() {
+      return true;
+    }
+    rules_version = '2';
+    
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            match /{document=**} {
+              allow write, read: if request.resource.data.asdf is int &&
+                                    request.resource.data.asdf == 333 ||
+                                    abcdef == 22;
+            }
+          }
+        }`;
+
+    const t = (): void => {
+      format(basicRule, {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        parser: 'firestore' as any,
+        plugins: ['src/index.ts']
+      });
+    };
+
+    expect(t).toThrowError();
+  });
+
   it('can format more complex rules', () => {
     const rules = `rules_version = '2';
     service cloud.firestore {

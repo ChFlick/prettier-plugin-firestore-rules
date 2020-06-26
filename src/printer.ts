@@ -20,12 +20,19 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
     }
 
     switch (node.type) {
-        case 'root':
-            if (node.version) {
-                return concat([node.version.join(' '), hardline, path.call(print, 'service')]);
-            }
-            return path.call(print, 'service');
+        case 'root': {
+            const root = [
+                join(hardline, path.map(print, 'functionsBefore')),
+                path.call(print, 'service'),
+                join(hardline, path.map(print, 'functionsAfter'))
+            ];
 
+            if (node.version) {
+                root.unshift(node.version.join(' '));
+            }
+
+            return join(hardline, root);
+        }
         case 'service':
             return concat([
                 group(join(' ', [...node.head, '{'])),
@@ -67,25 +74,27 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
                 ])
             );
 
-        case 'function-declaration':
+        case 'function-declaration': {
+            const params = !node.params ? '()' : group(
+                concat([
+                    '(',
+                    softline,
+                    indent(
+                        join(
+                            concat([',', line]),
+                            node.params
+                        )
+                    ),
+                    softline,
+                    ')'
+                ])
+            );
+
             return concat([
                 'function',
                 ' ',
                 node.name,
-                group(
-                    concat([
-                        '(',
-                        softline,
-                        indent(
-                            join(
-                                concat([',', line]),
-                                node.params
-                            )
-                        ),
-                        softline,
-                        ')'
-                    ])
-                ),
+                params,
                 ' {',
                 indent(
                     concat([
@@ -96,6 +105,7 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
                 hardline,
                 '}'
             ]);
+        }
         case 'function-call': {
             const params = !node.params ? '' :
                 indent(
@@ -151,6 +161,8 @@ type RootNode = {
     type: 'root';
     version?: string[];
     service: object;
+    functionsBefore: object[];
+    functionsAfter: object[];
 }
 
 type ServiceNode = {

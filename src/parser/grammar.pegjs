@@ -1,6 +1,6 @@
 Main
-  = version:Version? service:Service
-  { return {"type": "root", version, service}; }
+  = version:Version? before: Function* _ service:Service after: Function*
+  { return {"type": "root", version, service, functionsBefore: before, functionsAfter: after}; }
 
 AllowToken    = "allow"
 IfToken       = "if"
