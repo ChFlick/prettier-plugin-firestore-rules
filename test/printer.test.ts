@@ -85,6 +85,32 @@ describe('the parser', () => {
     console.log(result);
   });
 
+  it('can format service-level functions', () => {
+    const basicRule = `rules_version = '2';
+        service cloud.firestore {
+          function test() {
+            return true;
+          }
+          match /databases/{database}/documents {
+            match /{document=**} {
+              allow write, read: if true;
+            }
+          }
+          function test2() {
+            return false;
+          }
+        }
+        `;
+
+    const result = format(basicRule, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parser: 'firestore' as any,
+      plugins: ['src/index.ts']
+    });
+
+    console.log(result);
+  });
+
   it('cannot parse functions before the rules version token', () => {
     const basicRule = `
     function test() {

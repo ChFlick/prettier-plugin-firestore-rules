@@ -803,12 +803,18 @@ function peg$parse(input, options) {
 
     s0 = peg$currPos;
     s1 = peg$parseMatcher();
+    if (s1 === peg$FAILED) {
+      s1 = peg$parseFunction();
+    }
     if (s1 !== peg$FAILED) {
       s2 = [];
       s3 = peg$currPos;
       s4 = peg$parse_();
       if (s4 !== peg$FAILED) {
         s5 = peg$parseMatcher();
+        if (s5 === peg$FAILED) {
+          s5 = peg$parseFunction();
+        }
         if (s5 !== peg$FAILED) {
           s4 = [s4, s5];
           s3 = s4;
@@ -826,6 +832,9 @@ function peg$parse(input, options) {
         s4 = peg$parse_();
         if (s4 !== peg$FAILED) {
           s5 = peg$parseMatcher();
+          if (s5 === peg$FAILED) {
+            s5 = peg$parseFunction();
+          }
           if (s5 !== peg$FAILED) {
             s4 = [s4, s5];
             s3 = s4;

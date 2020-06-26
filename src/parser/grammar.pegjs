@@ -21,7 +21,7 @@ Service
   { return {"type": "service", "head": ["service", type], "content": content}; }
 
 Content
-  = left: Matcher right: (_ Matcher)*
+  = left: (Matcher/Function) right: (_ (Matcher/Function))*
   { return right ? [left, ...right.map(v => v[1])] : [left]; }
 
 Matcher
