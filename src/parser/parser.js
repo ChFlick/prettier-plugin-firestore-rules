@@ -239,7 +239,7 @@ function peg$parse(input, options) {
       peg$c95 = function(p1, pn) { return [p1, ...pn.flatMap(x => x).filter(x => x && x !== "," && x !== "")]; },
       peg$c96 = "let",
       peg$c97 = peg$literalExpectation("let", false),
-      peg$c98 = function(varName, varDecl) { return { "head": ["let", varName, "=", varDecl] }; },
+      peg$c98 = function(name, content) { return { "type": "variable-declaration", name, content }; },
       peg$c99 = "return",
       peg$c100 = peg$literalExpectation("return", false),
       peg$c101 = function(content) { return { "type": "return", "content": Array.isArray(content) ? content.flatMap(x => x) : content };},

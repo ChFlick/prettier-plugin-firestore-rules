@@ -33,6 +33,7 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
 
             return join(hardline, root);
         }
+
         case 'service':
             return concat([
                 group(join(' ', [...node.head, '{'])),
@@ -106,6 +107,7 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
                 '}'
             ]);
         }
+
         case 'function-call': {
             const params = !node.params ? '' :
                 indent(
@@ -127,18 +129,33 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
                 )
             ]);
         }
+
+        case 'variable-declaration':
+            return group(concat([
+                'let',
+                ' ',
+                node.name,
+                ' =',
+                line,
+                join('.', path.map(print, 'content')),
+                ';'
+            ]));
+
         case 'return':
             return group(concat([
                 'return',
                 line,
-                join('.', path.map(print, 'content'))
+                join('.', path.map(print, 'content')),
+                ';'
             ]));
+
         case 'operation':
             return join(' ', [
                 join('.', path.map(print, 'left')),
                 node.operation,
                 join('.', path.map(print, 'right'))
             ]);
+
         case 'connection':
             return group(concat([
                 node.operator,
@@ -146,6 +163,7 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
                 ...path.map(print, 'content'),
                 softline,
             ]));
+
         case 'text':
             return node.text;
     }
@@ -155,7 +173,7 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
 
 type Node = RootNode | ServiceNode | MatcherNode | AllowNode |
     FunctionDeclarationNode | FunctionCallNode | ReturnNode |
-    OperationNode | TextNode | ConnectionNode;
+    OperationNode | TextNode | ConnectionNode | VariableDeclarationNode;
 
 type RootNode = {
     type: 'root';
@@ -216,5 +234,11 @@ type TextNode = {
 type ConnectionNode = {
     type: 'connection';
     operator: string;
+    content: object[];
+}
+
+type VariableDeclarationNode = {
+    type: 'variable-declaration';
+    name: string;
     content: object[];
 }

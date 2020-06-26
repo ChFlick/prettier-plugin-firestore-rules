@@ -109,8 +109,8 @@ FunctionBody
   = VariableDeclaration* ReturnStatement
   
 VariableDeclaration
-  = "let" (EOL/__) _ varName: Word _ "=" _ varDecl: ConjunctedCondition EOL ";"? EOL
-  { return { "head": ["let", varName, "=", varDecl] }; }
+  = "let" (EOL/__) _ name: Word _ "=" _ content: ConjunctedCondition EOL ";"? EOL
+  { return { "type": "variable-declaration", name, content }; }
   
 ReturnStatement
   = "return" (EOL/__) _ content: ConjunctedCondition EOL ";"? EOL

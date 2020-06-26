@@ -111,6 +111,25 @@ describe('the parser', () => {
     console.log(result);
   });
 
+  it('can format let inside functions', () => {
+    const basicRule = `rules_version = '2';
+        service cloud.firestore {
+          function test() {
+            let x = true;
+            return x;
+          }
+        }
+        `;
+
+    const result = format(basicRule, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parser: 'firestore' as any,
+      plugins: ['src/index.ts']
+    });
+
+    console.log(result);
+  });
+
   it('cannot parse functions before the rules version token', () => {
     const basicRule = `
     function test() {
