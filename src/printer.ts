@@ -28,10 +28,25 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
             ];
 
             if (node.version) {
-                root.unshift(node.version.join(' '));
+                root.unshift(path.call(print, 'version'));
             }
 
             return join(hardline, root);
+        }
+
+        case 'version': {
+            const version: Doc[] = [
+                'rules_version = \'',
+                node.version,
+                '\';'
+            ];
+
+            if(node.comment) {
+                version.push(' ');
+                version.push(path.call(print, 'comment'));
+            }
+
+            return group(concat(version));
         }
 
         case 'service':
@@ -164,6 +179,12 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
                 softline,
             ]));
 
+        case 'comment':
+            return concat([
+                '// ',
+                node.text
+            ]);
+
         case 'text':
             return node.text;
     }
@@ -171,9 +192,10 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
     // throw new Error('Could not find a printer for node type ' + node.type);
 }
 
-type Node = RootNode | ServiceNode | MatcherNode | AllowNode |
+type Node = RootNode | VersionNode | ServiceNode | MatcherNode | AllowNode |
     FunctionDeclarationNode | FunctionCallNode | ReturnNode |
-    OperationNode | TextNode | ConnectionNode | VariableDeclarationNode;
+    OperationNode | TextNode | ConnectionNode | VariableDeclarationNode |
+    CommentNode;
 
 type RootNode = {
     type: 'root';
@@ -181,6 +203,12 @@ type RootNode = {
     service: object;
     functionsBefore: object[];
     functionsAfter: object[];
+}
+
+type VersionNode = {
+    type: 'version';
+    version: string;
+    comment?: object;
 }
 
 type ServiceNode = {
@@ -241,4 +269,9 @@ type VariableDeclarationNode = {
     type: 'variable-declaration';
     name: string;
     content: object[];
+}
+
+type CommentNode = {
+    type: 'comment';
+    text: string;
 }

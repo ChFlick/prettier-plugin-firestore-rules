@@ -8,8 +8,8 @@ MatchToken    = "match"
 VersionToken  = "rules_version"
 
 Version
-  = t: VersionToken _ "=" _ "'" vn:VersionNumber "'" _ ";"? EOL
-  { return [t, "=", vn] }  
+  = VersionToken _ "=" _ "'" vn:VersionNumber "'" _ ";"? comment: EOL
+  { return {"type": "version", "version": vn, comment}; }  
 VersionNumber
   = "1"/"2"
  
@@ -113,8 +113,8 @@ VariableDeclaration
   { return { "type": "variable-declaration", name, content }; }
   
 ReturnStatement
-  = "return" (EOL/__) _ content: ConjunctedCondition EOL ";"? EOL
-  { return { "type": "return", "content": Array.isArray(content) ? content.flatMap(x => x) : content };}
+  = "return" (EOL/__) _ content: ConjunctedCondition ";"? comment: EOL
+  { return { "type": "return", "content": Array.isArray(content) ? content.flatMap(x => x) : content, comment };}
 
 FunctionCall
   = name: WordDotWord _ "(" _ params: FunctionCallParameters? _ ")"
@@ -150,12 +150,12 @@ Word
   { return chars.join(""); }
   
 EOL
-  = _ Comment? LineTerminatorSequence?
-  {}
+  = _ comment: Comment? LineTerminatorSequence?
+  { return comment;}
 
 Comment "comment"
   = _ "//" comment: (!LineTerminator .)*
-  { return { "head": ["//", comment.flatMap(x => x).join("").trim()]}; }
+  { return { "type": "comment", "text": comment.flatMap(x => x).join("").trim()}; }
 
 DecimalLiteral
   = DecimalIntegerLiteral "." DecimalDigit* 

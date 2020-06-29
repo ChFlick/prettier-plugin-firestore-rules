@@ -228,4 +228,24 @@ describe('the parser', () => {
 
     console.log(result);
   });
+
+  it('can format comments behind the rules version', () => {
+    const basicRule = `rules_version = '2';    // this is a comment
+        service cloud.firestore {
+          function test() {
+            let x = true;
+            return x;
+          }
+        }
+        `;
+
+    const result = format(basicRule, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parser: 'firestore' as any,
+      plugins: ['src/index.ts']
+    });
+
+    expect(result.split('\n')[0])
+      .toEqual(`rules_version = '2'; // this is a comment`);
+  });
 });
