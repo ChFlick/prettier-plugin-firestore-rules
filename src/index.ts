@@ -4,7 +4,7 @@ import { print } from './printer';
 
 const p: Parser = {
     parse,
-    astFormat: 'firestore-ast',
+    astFormat: 'firestore',
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     locStart: (node: any) => {
         console.log('locStart', node);
@@ -23,7 +23,9 @@ export const languages = [
         name: 'firestore',
         // Parsers that can parse this language.
         // This can be built-in parsers, or parsers you have contributed via this plugin.
-        parsers: ['firestore']
+        parsers: ['firestore'],
+        extensions: ['.rules'],
+        vscodelanguageids: ['firestorerules']
     }
 ];
 
@@ -32,7 +34,7 @@ export const parsers = {
 };
 
 export const printers = {
-    'firestore-ast': {
+    'firestore': {
         print
     }
 };
