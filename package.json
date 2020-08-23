@@ -1,6 +1,6 @@
 {
     "name": "prettier-plugin-firestore-rules",
-    "version": "0.0.1",
+    "version": "0.0.3",
     "description": "Firestore Rules formatter plugin for prettier",
     "main": "out/index.js",
     "files": [
@@ -10,8 +10,7 @@
         "build": "tsc -p ./",
         "compile:grammar": "pegjs -o src/parser/parser.js src/parser/grammar.pegjs",
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-        "test": "jest",
-        "prepare": "yarn compile:grammar && yarn build && yarn lint && yarn test"
+        "test": "jest"
     },
     "repository": {
         "type": "git",
@@ -34,7 +33,8 @@
     },
     "homepage": "https://github.com/ChFlick/prettier-plugin-firestore-rules",
     "dependencies": {
-        "prettier": "^2.0.5"
+        "prettier": "^2.0.5",
+        "prettier-plugin-firestore-rules": "^0.0.1"
     },
     "devDependencies": {
         "@types/chai": "^4.2.11",
