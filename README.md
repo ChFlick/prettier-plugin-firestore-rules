@@ -1,5 +1,7 @@
 ![CI](https://github.com/ChFlick/prettier-plugin-firestore-rules/workflows/CI/badge.svg)
 
+**This Plugin is still WIP**
+
 prettier-plugin-firestore-rules
 ===============================
 

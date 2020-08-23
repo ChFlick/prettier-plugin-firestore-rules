@@ -1,8 +1,11 @@
 {
     "name": "prettier-plugin-firestore-rules",
     "version": "0.0.1",
-    "description": "Firestore Rules plugin for prettier",
-    "main": "plugin.js",
+    "description": "Firestore Rules formatter plugin for prettier",
+    "main": "out/index.js",
+    "files": [
+        "out"
+    ],
     "scripts": {
         "build": "tsc -p ./",
         "compile:grammar": "pegjs -o src/parser/parser.js src/parser/grammar.pegjs",
@@ -16,6 +19,9 @@
     },
     "keywords": [
         "prettier",
+        "prettier-plugin",
+        "plugin",
+        "firebase",
         "firestore"
     ],
     "author": {
