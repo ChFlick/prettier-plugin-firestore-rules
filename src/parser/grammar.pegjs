@@ -1,6 +1,19 @@
+{
+  var logger = require('./logger');
+
+  logger.setContext(function() {
+    return {
+      line: line(),
+      column: column()
+    };
+  });
+}
+
 Main
-  = version:Version? before: Function* _ service:Service after: Function*
-  { return {"type": "root", version, service, functionsBefore: before, functionsAfter: after}; }
+  = toplevelComment: _ version:Version? before: Function* _ service:Service after: Function*
+  { 
+    return {"type": "root", toplevelComment, version, service, functionsBefore: before, functionsAfter: after}; 
+  }
 
 AllowToken    = "allow"
 IfToken       = "if"
@@ -150,12 +163,9 @@ Word
   { return chars.join(""); }
   
 EOL
-  = _ comment: Comment? LineTerminatorSequence?
+  = (Whitespace / comment: Comment / LineTerminatorSequence)
+  / (Whitespace? ";" Whitespace / comment: Comment / LineTerminatorSequence)
   { return comment;}
-
-Comment "comment"
-  = _ "//" comment: (!LineTerminator .)*
-  { return { "type": "comment", "text": comment.flatMap(x => x).join("").trim()}; }
 
 DecimalLiteral
   = DecimalIntegerLiteral "." DecimalDigit* 
@@ -193,7 +203,24 @@ DataType
 LineTerminator
   = [\n\r\u2028\u2029]
   {}
-  
+
+// Require some whitespace
+__ = (Whitespace / Comment)+
+
+// Optional whitespace
+_ = value: (Whitespace / Comment)*
+	{ return value.filter(v => v)}
+
+Whitespace "whitespace" = [ \t\r\n]+
+	{}
+
+Comment "comment"
+  = SingleLineComment
+
+SingleLineComment
+  = "//" comment:(!LineTerminatorSequence .)*
+ { return comment.flatMap(x => x).join("").trim(); }
+
 LineTerminatorSequence "end of line"
   = "\n"
   / "\r\n"
@@ -201,12 +228,3 @@ LineTerminatorSequence "end of line"
   / "\u2028"
   / "\u2029"
   {}
-
-__ "required_whitespace"
-  = [ \t\n\r]+ 
-  {}
-  
-_ "whitespace"
-  = [ \t\n\r]*
-  {}
-  
