@@ -7,13 +7,15 @@
       column: column()
     };
   });
+
+  function definedNotEmpty(x) {
+    return x && (Array.isArray(x) ? x.length > 0 : true);
+  }
 }
 
 Main
-  = toplevelComment: _ version:Version? before: Function* _ service:Service after: Function*
-  { 
-    return {"type": "root", toplevelComment, version, service, functionsBefore: before, functionsAfter: after}; 
-  }
+  = content: (_ Version? Function* _ Service Function* _)
+  { return { type: "root", content: content.filter(definedNotEmpty) }; }
 
 AllowToken    = "allow"
 IfToken       = "if"
@@ -21,33 +23,33 @@ MatchToken    = "match"
 VersionToken  = "rules_version"
 
 Version
-  = VersionToken _ "=" _ "'" vn:VersionNumber "'" _ ";"? comment: EOL
-  { return {"type": "version", "version": vn, comment}; }  
+  = VersionToken _ "=" _ "'" vn:VersionNumber "'" comment: EOL
+  { return {type: "version", version: vn, comment}; }  
 VersionNumber
   = "1"/"2"
  
 Service
-  = "service" _ type:("cloud.firestore"/"firebase.storage") EOL
-  "{" EOL 
+  = "service" _ type:("cloud.firestore"/"firebase.storage") _
+  "{" comment: EOL 
   content:Content EOL
-  "}" EOL
-  { return {"type": "service", "head": ["service", type], "content": content}; }
+  "}"
+  { return {type: "service", head: ["service", type], comment, content: content}; }
 
 Content
-  = left: (Matcher/Function) right: (_ (Matcher/Function))*
-  { return right ? [left, ...right.map(v => v[1])] : [left]; }
+  = content: (_ (Matcher/Function) (_ (Matcher/Function))* _)
+  { return content.filter(definedNotEmpty); }
 
 Matcher
-  = _ MatchToken __ path:MatcherPath EOL
-    "{" EOL
-    matcherBody: (Matcher/Allow/Function/Comment)+ _
-    "}" EOL
-  { return {"type": "match", path, "content": matcherBody}; }
+  = _ MatchToken __ path:MatcherPath _
+    "{" comment: EOL
+    matcherBody: (_ Function* (Matcher/Allow) (Matcher/Allow/Function)* _)
+    "}"
+  { return {type: "match", path, comment, content: matcherBody.filter(definedNotEmpty)}; }
   
 Allow 
-  = _ AllowToken __ scopes: AllowScopes ":" (EOL/__) _
+  = _ AllowToken __ scopes: AllowScopes ":" scopesComment:(EOL/__) _
   IfToken __ content: ConjunctedCondition
-  { return { "type": "allow", scopes, content }; }
+  { return { type: "allow", scopes, scopesComment, content }; }
 AllowScopes 
   = mainsope:AllowScope _ morescopes:("," _ AllowScope)*
    { return [mainsope, ...morescopes.flatMap(x => x).filter(x => x && x !== "," && x !== "")] }
@@ -59,7 +61,7 @@ ConjunctedCondition
   { return [c1, cn].flatMap(x => x).filter(x => x && x !== "");}
 SubCondition
   = _ EOL condOp: ("&&" / "||") _ EOL _ cond: Condition
-  { return {"type": "connection", "operator": condOp, "content": Array.isArray(cond) ? cond.flatMap(x => x).filter(x => x && x !== "") : cond}; }
+  { return {type: "connection", operator: condOp, content: Array.isArray(cond) ? cond.flatMap(x => x).filter(x => x && x !== "") : cond}; }
   
 Condition
   = (
@@ -68,18 +70,18 @@ Condition
   / "(" EOL condition: Condition EOL ")" EOL
     { return condition; }
   / left: (ValueStatement / Literal) _ operation: ValueOperator _ right: (ValueStatement / Literal)
-  	{ return { "type": "operation", "left": [left].flatMap(x => x), operation, "right": [right].flatMap(x => x)}; }  
+  	{ return { type: "operation", left: [left].flatMap(x => x), operation, "right": [right].flatMap(x => x)}; }  
   / left: (ValueStatement / Literal) _ "is" _ right: DataType
-  	{ return { "type": "operation", "left": [left].flatMap(x => x), "operation": "is", "right": [{"type": "text", "text": right}]}; }  
+  	{ return { type: "operation", left: [left].flatMap(x => x), operation: "is", right: [{type: "text", text: right}]}; }  
   / vs: ValueStatement 
   	{ return vs; }   
   / Literal
-  	{ return {"type": "text", "text": text()} }
+  	{ return {type: "text", text: text()} }
   ) (";" EOL {} / EOL {})
   
 ValueStatement
   = "[" _ statement: ValueStatement _ "]"
-    { return {"type": "text", "text": text()}; }
+    { return {type: "text", text: text()}; }
   / left: FunctionCall "." right: ValueStatement
   	{ return [left, right]; }
   / fc: FunctionCall
@@ -87,21 +89,21 @@ ValueStatement
   / left: WordDotWord "." right: ValueStatement
   	{ return [left, right]; }
   / WordDotWord
-  	{ return {"type": "text", "text": text()}; }
+  	{ return {type: "text", text: text()}; }
       
 LiteralArray
   = "[" Literals? "]"
-  { return { "type": "Array", values: []}; }
+  { return { type: "Array", values: []}; }
 Literals
   = l1: Literal ln: (_ "," _ Literal)*
   { return [l1, ln].flatMap(x => x).filter(x => x && x !== "," && x !== "");  }
 Literal
   = (String / SlashString / DecimalLiteral / LiteralArray)
-  { return { "type": "text", "text": text() }; }
+  { return { type: "text", text: text() }; }
   
 Function
   = _ "function" __ name:FunctionName "(" params:FunctionParameters? ")" _ "{" (EOL/__) body:FunctionBody (EOL/__) "}"
-  { return {"type": "function-declaration", name, params, "content": body.flatMap(x => x)}; }
+  { return {type: "function-declaration", name, params, content: body.flatMap(x => x)}; }
 
 MatcherPath 
   = "/" first: PathSegment following: MatcherPath*
@@ -123,15 +125,15 @@ FunctionBody
   
 VariableDeclaration
   = "let" (EOL/__) _ name: Word _ "=" _ content: ConjunctedCondition EOL ";"? EOL
-  { return { "type": "variable-declaration", name, content }; }
+  { return { type: "variable-declaration", name, content }; }
   
 ReturnStatement
   = "return" (EOL/__) _ content: ConjunctedCondition ";"? comment: EOL
-  { return { "type": "return", "content": Array.isArray(content) ? content.flatMap(x => x) : content, comment };}
+  { return { type: "return", content: Array.isArray(content) ? content.flatMap(x => x) : content, comment };}
 
 FunctionCall
   = name: WordDotWord _ "(" _ params: FunctionCallParameters? _ ")"
-  { return { "type": "function-call", name, params }; }
+  { return { type: "function-call", name, params }; }
 FunctionCallParameters
   = left: FunctionCallParameter right: ("," _ FunctionCallParameter)*
   { return [left, ...right.map(v => v[2])]; } 
@@ -162,10 +164,16 @@ Word
   = chars: [a-zA-Z0-9_]+
   { return chars.join(""); }
   
+//EOL
+//  = ((Whitespace? comment: Comment?) /
+//  (Whitespace? ";" Whitespace? comment: Comment?)) LineTerminatorSequence
+//  { return comment;}
+
 EOL
-  = (Whitespace / comment: Comment / LineTerminatorSequence)
-  / (Whitespace? ";" Whitespace / comment: Comment / LineTerminatorSequence)
-  { return comment;}
+  = WhitespaceNoLB? ";" WhitespaceNoLB? comment: Comment?
+    { return comment; }
+  / WhitespaceNoLB? comment: Comment?
+  	{ return comment; }
 
 DecimalLiteral
   = DecimalIntegerLiteral "." DecimalDigit* 
@@ -209,9 +217,12 @@ __ = (Whitespace / Comment)+
 
 // Optional whitespace
 _ = value: (Whitespace / Comment)*
-	{ return value.filter(v => v)}
+	{ return { type: "comments", comments: value.filter(v => v) }; }
 
 Whitespace "whitespace" = [ \t\r\n]+
+	{}
+    
+WhitespaceNoLB "whitespace" = [ \t]+
 	{}
 
 Comment "comment"
