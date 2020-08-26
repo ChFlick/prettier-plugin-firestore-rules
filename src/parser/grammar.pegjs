@@ -1,18 +1,12 @@
 {
-  var logger = require('./logger');
-
-  logger.setContext(function() {
-    return {
-      line: line(),
-      column: column()
-    };
-  });
-
   function definedNotEmpty(x) {
     return x && (Array.isArray(x) ? x.length > 0 : true);
   }
-}
 
+  function flatten(x) {
+      return Array.isArray(x) ? x.flatMap(x => x) : x;
+  }
+}
 Main
   = content: (_ Version? Function* _ Service Function* _)
   { return { type: "root", content: content.filter(definedNotEmpty) }; }
@@ -37,14 +31,14 @@ Service
 
 Content
   = content: (_ (Matcher/Function) (_ (Matcher/Function))* _)
-  { return content.filter(definedNotEmpty); }
+  { return content.map(x => flatten(x)).filter(definedNotEmpty); }
 
 Matcher
   = _ MatchToken __ path:MatcherPath _
     "{" comment: EOL
     matcherBody: (_ Function* (Matcher/Allow) (Matcher/Allow/Function)* _)
     "}"
-  { return {type: "match", path, comment, content: matcherBody.filter(definedNotEmpty)}; }
+  { return {type: "match", path, comment, content: matcherBody.map(x => flatten(x)).filter(definedNotEmpty)}; }
   
 Allow 
   = _ AllowToken __ scopes: AllowScopes ":" scopesComment:(EOL/__) _
@@ -60,7 +54,7 @@ ConjunctedCondition
   = c1: Condition cn: SubCondition*
   { return [c1, cn].flatMap(x => x).filter(x => x && x !== "");}
 SubCondition
-  = _ EOL condOp: ("&&" / "||") _ EOL _ cond: Condition
+  = _ EOL condOp: ("&&" / "||") _ cond: Condition
   { return {type: "connection", operator: condOp, content: Array.isArray(cond) ? cond.flatMap(x => x).filter(x => x && x !== "") : cond}; }
   
 Condition
@@ -102,8 +96,11 @@ Literal
   { return { type: "text", text: text() }; }
   
 Function
-  = _ "function" __ name:FunctionName "(" params:FunctionParameters? ")" _ "{" (EOL/__) body:FunctionBody (EOL/__) "}"
-  { return {type: "function-declaration", name, params, content: body.flatMap(x => x)}; }
+  = "function" __ name:FunctionName "(" params:FunctionParameters? ")" _
+  	"{" comment: EOL _
+    body: FunctionBody _
+    "}"
+  { return {type: "function-declaration", name, params, comment, content: body.flatMap(x => x)}; }
 
 MatcherPath 
   = "/" first: PathSegment following: MatcherPath*
@@ -121,14 +118,14 @@ FunctionParameters
   = p1: Word pn:("," _ Word)*
   { return [p1, ...pn.flatMap(x => x).filter(x => x && x !== "," && x !== "")]; }
 FunctionBody 
-  = VariableDeclaration* ReturnStatement
+  = _ (VariableDeclaration/Comment)* _ ReturnStatement _
   
 VariableDeclaration
   = "let" (EOL/__) _ name: Word _ "=" _ content: ConjunctedCondition EOL ";"? EOL
   { return { type: "variable-declaration", name, content }; }
   
 ReturnStatement
-  = "return" (EOL/__) _ content: ConjunctedCondition ";"? comment: EOL
+  = "return" __ content: ConjunctedCondition comment: EOL
   { return { type: "return", content: Array.isArray(content) ? content.flatMap(x => x) : content, comment };}
 
 FunctionCall
@@ -163,11 +160,6 @@ WordDotWord
 Word
   = chars: [a-zA-Z0-9_]+
   { return chars.join(""); }
-  
-//EOL
-//  = ((Whitespace? comment: Comment?) /
-//  (Whitespace? ";" Whitespace? comment: Comment?)) LineTerminatorSequence
-//  { return comment;}
 
 EOL
   = WhitespaceNoLB? ";" WhitespaceNoLB? comment: Comment?
@@ -217,7 +209,10 @@ __ = (Whitespace / Comment)+
 
 // Optional whitespace
 _ = value: (Whitespace / Comment)*
-	{ return { type: "comments", comments: value.filter(v => v) }; }
+	{ 
+    const comments = value.filter(v => v);
+    return definedNotEmpty(comments) ? { type: "comments", comments: value.filter(v => v) } : null;
+  }
 
 Whitespace "whitespace" = [ \t\r\n]+
 	{}
