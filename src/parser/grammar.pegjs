@@ -51,14 +51,14 @@ AllowScope
   = "write"/"read"/"get"/"list"/"update"/"delete"/"create"
 
 ConjunctedCondition
-  = c1: Condition cn: SubCondition*
+  = c1: Condition cn: SubCondition* ";"
   { return [c1, cn].flatMap(x => x).filter(x => x && x !== "");}
 SubCondition
-  = _ EOL condOp: ("&&" / "||") _ cond: Condition
+  = _ condOp: ("&&" / "||") _ cond: Condition
   { return {type: "connection", operator: condOp, content: Array.isArray(cond) ? cond.flatMap(x => x).filter(x => x && x !== "") : cond}; }
   
 Condition
-  = (
+  = condition: (
     "!" condition: Condition
     { return condition; }
   / "(" EOL condition: Condition EOL ")" EOL
@@ -71,7 +71,8 @@ Condition
   	{ return vs; }   
   / Literal
   	{ return {type: "text", text: text()} }
-  ) (";" EOL {} / EOL {})
+  ) comment: _
+  { return comment ? { ...condition, comment} : condition; }
   
 ValueStatement
   = "[" _ statement: ValueStatement _ "]"
@@ -136,8 +137,7 @@ FunctionCallParameters
   { return [left, ...right.map(v => v[2])]; } 
 FunctionCallParameter
   = Literal / ValueStatement
-//  = "[" _ FunctionCallParameter _ "]"
-//  / WordDotWord / String / DecimalLiteral / SlashString
+
   
 SlashString
   = "/" first:WordOrDollarWord following: SlashString*
