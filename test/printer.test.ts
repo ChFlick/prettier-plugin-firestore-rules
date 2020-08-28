@@ -17,7 +17,7 @@ describe('the parser', () => {
       plugins: ['src/index.ts']
     });
 
-    console.log(result);
+    expect(result).toMatchSnapshot();
   });
 
   it('can format an is condition', () => {
@@ -36,7 +36,7 @@ describe('the parser', () => {
       plugins: ['src/index.ts']
     });
 
-    console.log(result);
+    expect(result).toMatchSnapshot();
   });
 
   it('can format &&/|| connected conditions', () => {
@@ -57,7 +57,7 @@ describe('the parser', () => {
       plugins: ['src/index.ts']
     });
 
-    console.log(result);
+    expect(result).toMatchSnapshot();
   });
 
   it('can format root-level functions', () => {
@@ -82,7 +82,7 @@ describe('the parser', () => {
       plugins: ['src/index.ts']
     });
 
-    console.log(result);
+    expect(result).toMatchSnapshot();
   });
 
   it('can format service-level functions', () => {
@@ -108,7 +108,7 @@ describe('the parser', () => {
       plugins: ['src/index.ts']
     });
 
-    console.log(result);
+    expect(result).toMatchSnapshot();
   });
 
   it('can format let inside functions', () => {
@@ -127,7 +127,7 @@ describe('the parser', () => {
       plugins: ['src/index.ts']
     });
 
-    console.log(result);
+    expect(result).toMatchSnapshot();
   });
 
   it('cannot parse functions before the rules version token', () => {
@@ -226,7 +226,7 @@ describe('the parser', () => {
       printWidth: 200,
     });
 
-    console.log(result);
+    expect(result).toMatchSnapshot();
   });
 
   it('can format comments behind the rules version', () => {
@@ -245,7 +245,6 @@ describe('the parser', () => {
       plugins: ['src/index.ts']
     });
 
-    expect(result.split('\n')[0])
-      .toEqual(`rules_version = '2'; // this is a comment`);
+    expect(result).toMatchSnapshot();
   });
 });
