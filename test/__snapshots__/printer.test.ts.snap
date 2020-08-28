@@ -162,7 +162,15 @@ service cloud.firestore {
 exports[`the parser can format the example rules 1`] = `
 "// Top rule
 rules_version = '2';
+function rootFunction() {
+  return true;
+}
+// test
 service cloud.firestore {
+  function serviceFunction() {
+    return true;
+  }
+  // test
   match /databases/{database}/documents {
     function hasValue(value, uid, carId) {
       return
