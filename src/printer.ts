@@ -243,14 +243,14 @@ type VersionNode = {
 type ServiceNode = {
     type: 'service';
     head: string[];
-    content: object[];
+    content: Record<string, unknown>[];
     comment: string | null;
 }
 
 type MatcherNode = {
     type: 'match';
     path: string;
-    content: object[];
+    content: Record<string, unknown>[];
     comment: string | null;
 }
 
@@ -265,7 +265,7 @@ type FunctionDeclarationNode = {
     type: 'function-declaration';
     name: string;
     params: string[];
-    content: object[];
+    content: Record<string, unknown>[];
 }
 
 type FunctionCallNode = {
@@ -276,20 +276,20 @@ type FunctionCallNode = {
 
 type ReturnNode = {
     type: 'return';
-    content: object[];
+    content: Record<string, unknown>[];
 }
 
 type OperationNode = {
     type: 'operation';
-    left: object[];
+    left: Record<string, unknown>[];
     operation: string;
-    right: object[];
+    right: Record<string, unknown>[];
 }
 
 type CallNode = {
     type: 'call';
-    left: object;
-    right: object;
+    left: Record<string, unknown>;
+    right: Record<string, unknown>;
 }
 
 type TextNode = {
@@ -300,13 +300,13 @@ type TextNode = {
 type ConnectionNode = {
     type: 'connection';
     operator: string;
-    content: object[];
+    content: Record<string, unknown>[];
 }
 
 type VariableDeclarationNode = {
     type: 'variable-declaration';
     name: string;
-    content: object[];
+    content: Record<string, unknown>[];
 }
 
 type CommentNode = {
