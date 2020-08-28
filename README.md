@@ -1,4 +1,8 @@
 ![CI](https://github.com/ChFlick/prettier-plugin-firestore-rules/workflows/CI/badge.svg)
+![MIT-License](https://img.shields.io/github/license/ChFlick/prettier-plugin-firestore-rules)
+![Dependencies](https://img.shields.io/david/ChFlick/prettier-plugin-firestore-rules)
+![DevDependencies](https://img.shields.io/david/dev/ChFlick/prettier-plugin-firestore-rules)
+![npmVersion](https://img.shields.io/npm/v/prettier-plugin-firestore-rules?color=blue)
 
 prettier-plugin-firestore-rules
 ===============================
