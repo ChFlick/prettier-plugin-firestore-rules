@@ -83,6 +83,18 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
 
         case 'allow': {
             const afterAllowScope = node.scopesComment ? [` // ${node.scopesComment}`, hardline] : [line];
+            if(!node.content) {
+                return group(
+                    concat([
+                        'allow',
+                        ' ',
+                        join(', ', node.scopes),
+                        ';',
+                        ...afterAllowScope,
+                    ])
+                ); 
+            }
+
             return group(
                 concat([
                     'allow',
@@ -245,7 +257,7 @@ type MatcherNode = {
 type AllowNode = {
     type: 'allow';
     scopes: string[];
-    content: string[];
+    content?: string[];
     scopesComment: string | null;
 }
 

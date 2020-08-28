@@ -22,6 +22,26 @@ describe('the parser', () => {
     expect(result).toMatchSnapshot();
   });
 
+  it('can format allow without condition', () => {
+    const basicRule = `rules_version = '2';
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            match /{document=**} {
+              allow read, write;
+            }
+          }
+        }`;
+
+    const result = format(basicRule, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parser: 'firestore' as any,
+      plugins: ['src/index.ts']
+    });
+
+    expect(result).toMatchSnapshot();
+  });
+
+
   it('can format an is condition', () => {
     const basicRule = `rules_version = '2';
         service cloud.firestore {

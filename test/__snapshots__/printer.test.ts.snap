@@ -14,6 +14,17 @@ service cloud.firestore {
 }"
 `;
 
+exports[`the parser can format allow without condition 1`] = `
+"rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write;
+    }
+  }
+}"
+`;
+
 exports[`the parser can format an is condition 1`] = `
 "rules_version = '2';
 service cloud.firestore {
@@ -164,7 +175,9 @@ service cloud.firestore {
       allow read: if request.auth.uid == targetUserId;
       match /subCollection/{carId} {
         allow read: if hasValue('bla', request.auth.uid, carId);
-        allow update: if false;
+        allow update; // Some comment
+
+        allow delete: if false;
         // another comment
       }
     }

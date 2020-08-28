@@ -37,9 +37,15 @@ Matcher
   { return {type: "match", path, comment, content: matcherBody.flatMap(x => x).filter(definedNotEmpty)}; }
   
 Allow 
-  = _ AllowToken __ scopes: AllowScopes ":" scopesComment:(EOL/__) _
-  IfToken __ content: ConjunctedCondition
-  { return { type: "allow", scopes, scopesComment, content }; }
+  = _ AllowToken __ scopes: AllowScopes rest: (AllowContent/EOL)
+  {	return typeof rest === "string" ?
+  	{ type: "allow", scopes, scopesComment: rest } :
+  	{ type: "allow", scopes, ...rest };
+  }
+  
+AllowContent
+  = ":" scopesComment:(EOL/__) IfToken __ content: ConjunctedCondition
+  { return { scopesComment, content }; }
 AllowScopes 
   = mainsope:AllowScope _ morescopes:("," _ AllowScope)*
    { return [mainsope, ...morescopes.flatMap(x => x).filter(x => x && x !== "," && x !== "")] }
