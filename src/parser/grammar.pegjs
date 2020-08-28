@@ -23,7 +23,7 @@ Service
   "{" comment: EOL 
   content:Content EOL
   "}"
-  { return {type: "service", head: ["service", type], comment, content: content}; }
+  { return {type: "service", head: ["service", type], comment, content: content.flatMap(x => x).filter(definedNotEmpty) }; }
 
 Content
   = content: (_ (Matcher/Function) (_ (Matcher/Function))* _)
@@ -51,7 +51,7 @@ ConjunctedCondition
   { return [c1, cn].flatMap(x => x).filter(x => x && x !== "");}
 SubCondition
   = _ condOp: ("&&" / "||") _ cond: Condition
-  { return {type: "connection", operator: condOp, content: Array.isArray(cond) ? cond.flatMap(x => x).filter(x => x && x !== "") : cond}; }
+  { return {type: "connection", operator: condOp, content: Array.isArray(cond) ? cond.flatMap(x => x).filter(x => x && x !== "") : [cond]}; }
   
 Condition
   = condition: (
@@ -143,7 +143,7 @@ WordOrDollarWord
   { return text() }
   
 ValueOperator
-  = "=="/"!="/"&&"/"||"/"<="/">="/"<"/">"
+  = "=="/"!="/"<="/">="/"<"/">"
   
 String
   = chars:("'" [^']+ "'")
