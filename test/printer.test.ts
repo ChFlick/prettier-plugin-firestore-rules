@@ -1,4 +1,6 @@
 import { format } from 'prettier';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
 describe('the parser', () => {
   it('can format basic rules', () => {
@@ -240,6 +242,19 @@ describe('the parser', () => {
         `;
 
     const result = format(basicRule, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parser: 'firestore' as any,
+      plugins: ['src/index.ts']
+    });
+
+    expect(result).toMatchSnapshot();
+  });
+
+  it('can format the example rules', () => {
+    const exampleRulesPath = resolve(__dirname + '/../example.rules');
+    const exampleRules = readFileSync(exampleRulesPath).toString();
+
+    const result = format(exampleRules, {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       parser: 'firestore' as any,
       plugins: ['src/index.ts']
