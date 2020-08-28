@@ -2,14 +2,10 @@
   function definedNotEmpty(x) {
     return x && (Array.isArray(x) ? x.length > 0 : true);
   }
-
-  function flatten(x) {
-      return Array.isArray(x) ? x.flatMap(x => x) : x;
-  }
 }
 Main
-  = content: (_ Version? Function* _ Service Function* _)
-  { return { type: "root", content: content.filter(definedNotEmpty) }; }
+  = content: (_ Version? _ Function* _ Service _ Function* _)
+  { return { type: "root", content: content.flatMap(x => x).filter(definedNotEmpty) }; }
 
 AllowToken    = "allow"
 IfToken       = "if"
@@ -31,14 +27,14 @@ Service
 
 Content
   = content: (_ (Matcher/Function) (_ (Matcher/Function))* _)
-  { return content.map(x => flatten(x)).filter(definedNotEmpty); }
+  { return content.flatMap(x => x).filter(definedNotEmpty); }
 
 Matcher
   = _ MatchToken __ path:MatcherPath _
     "{" comment: EOL
     matcherBody: (_ Function* (Matcher/Allow) (Matcher/Allow/Function)* _)
     "}"
-  { return {type: "match", path, comment, content: matcherBody.map(x => flatten(x)).filter(definedNotEmpty)}; }
+  { return {type: "match", path, comment, content: matcherBody.flatMap(x => x).filter(definedNotEmpty)}; }
   
 Allow 
   = _ AllowToken __ scopes: AllowScopes ":" scopesComment:(EOL/__) _
@@ -51,7 +47,7 @@ AllowScope
   = "write"/"read"/"get"/"list"/"update"/"delete"/"create"
 
 ConjunctedCondition
-  = c1: Condition cn: SubCondition* ";"
+  = c1: Condition cn: SubCondition* EOL
   { return [c1, cn].flatMap(x => x).filter(x => x && x !== "");}
 SubCondition
   = _ condOp: ("&&" / "||") _ cond: Condition
@@ -61,7 +57,7 @@ Condition
   = condition: (
     "!" condition: Condition
     { return condition; }
-  / "(" EOL condition: Condition EOL ")" EOL
+  / "(" EOL condition: Condition EOL ")"
     { return condition; }
   / left: (ValueStatement / Literal) _ operation: ValueOperator _ right: (ValueStatement / Literal)
   	{ return { type: "operation", left: [left].flatMap(x => x), operation, "right": [right].flatMap(x => x)}; }  
@@ -98,10 +94,10 @@ Literal
   
 Function
   = "function" __ name:FunctionName "(" params:FunctionParameters? ")" _
-  	"{" comment: EOL _
+  	"{" comment: EOL
     body: FunctionBody _
     "}"
-  { return {type: "function-declaration", name, params, comment, content: body.flatMap(x => x)}; }
+  { return {type: "function-declaration", name, params, comment, content: body.filter(definedNotEmpty).flatMap(x => x)}; }
 
 MatcherPath 
   = "/" first: PathSegment following: MatcherPath*
@@ -122,8 +118,8 @@ FunctionBody
   = _ (VariableDeclaration/Comment)* _ ReturnStatement _
   
 VariableDeclaration
-  = "let" (EOL/__) _ name: Word _ "=" _ content: ConjunctedCondition EOL ";"? EOL
-  { return { type: "variable-declaration", name, content }; }
+  = "let" __ name: Word _ "=" _ content: ConjunctedCondition comment: EOL
+  { return { type: "variable-declaration", name, content, comment }; }
   
 ReturnStatement
   = "return" __ content: ConjunctedCondition comment: EOL
