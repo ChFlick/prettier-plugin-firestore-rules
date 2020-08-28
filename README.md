@@ -1,7 +1,5 @@
 ![CI](https://github.com/ChFlick/prettier-plugin-firestore-rules/workflows/CI/badge.svg)
 
-**This Plugin is still WIP**
-
 prettier-plugin-firestore-rules
 ===============================
 
@@ -31,6 +29,11 @@ To be done
       && zxcv
       && xcvb
     ```
+  - semicolon may be off
+  ```
+  && request.resource.data.timeSlot.to > request.resource.data.timeSlot.from
+            ;
+  ```
 - Add formatter options:
   - newlines after matchers/allows/functions
   - && at start or end of the line
