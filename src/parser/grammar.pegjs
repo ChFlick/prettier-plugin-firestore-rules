@@ -74,11 +74,11 @@ ValueStatement
   = "[" _ statement: ValueStatement _ "]"
     { return {type: "text", text: text()}; }
   / left: FunctionCall "." right: ValueStatement
-  	{ return [left, right]; }
+  	{ return {type: "call", left, right}; }
   / fc: FunctionCall
   	{ return fc; }
   / left: WordDotWord "." right: ValueStatement
-  	{ return [left, right]; }
+  	{ return {type: "call", left, right}; }
   / WordDotWord
   	{ return {type: "text", text: text()}; }
       

@@ -179,6 +179,13 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
                 join('.', path.map(print, 'right'))
             ]);
 
+        case 'call':
+            return concat([
+                path.call(print, 'left'),
+                '.',
+                path.call(print, 'right')
+            ]);
+
         case 'connection':
             return group(concat([
                 node.operator,
@@ -207,8 +214,8 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
 
 type Node = RootNode | VersionNode | ServiceNode | MatcherNode | AllowNode |
     FunctionDeclarationNode | FunctionCallNode | ReturnNode |
-    OperationNode | TextNode | ConnectionNode | VariableDeclarationNode |
-    CommentNode | CommentsNode;
+    OperationNode | CallNode | TextNode | ConnectionNode |
+    VariableDeclarationNode | CommentNode | CommentsNode;
 
 type RootNode = {
     type: 'root';
@@ -265,6 +272,12 @@ type OperationNode = {
     left: object[];
     operation: string;
     right: object[];
+}
+
+type CallNode = {
+    type: 'call';
+    left: object;
+    right: object;
 }
 
 type TextNode = {
