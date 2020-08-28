@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { parse } from '../src/parser/parser';
+import { parse } from '../out/parser/parser';
 
 describe('the parser', () => {
     it('generates a valid result', () => {

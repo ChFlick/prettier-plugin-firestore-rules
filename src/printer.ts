@@ -21,37 +21,33 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
 
     switch (node.type) {
         case 'root': {
-            const root = [
-                join(hardline, path.map(print, 'functionsBefore')),
-                path.call(print, 'service'),
-                join(hardline, path.map(print, 'functionsAfter'))
-            ];
-
-            if (node.version) {
-                root.unshift(path.call(print, 'version'));
-            }
-
-            return join(hardline, root);
+            return join(hardline, path.map(print, 'content'));
         }
 
         case 'version': {
             const version: Doc[] = [
-                'rules_version = \'',
+                `rules_version = '`,
                 node.version,
-                '\';'
+                `';`,
             ];
 
-            if(node.comment) {
+            if (node.comment) {
                 version.push(' ');
-                version.push(path.call(print, 'comment'));
+                version.push(`// ${node.comment}`);
             }
 
             return group(concat(version));
         }
 
-        case 'service':
+        case 'service': {
+            const head = join(' ',
+                node.comment ?
+                    [...node.head, '{', `// ${node.comment}`] :
+                    [...node.head, '{']
+            );
+
             return concat([
-                group(join(' ', [...node.head, '{'])),
+                group(head),
                 indent(
                     concat([
                         hardline,
@@ -61,10 +57,19 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
                 hardline,
                 '}'
             ]);
+        }
 
-        case 'match':
+        case 'match': {
+            const head = join(' ',
+                node.comment ?
+                    ['match', node.path, '{', `// ${node.comment}`] :
+                    ['match', node.path, '{']
+            );
+
             return concat([
-                join(' ', ['match', node.path, '{']),
+                group(
+                    head
+                ),
                 indent(
                     concat([
                         hardline,
@@ -74,21 +79,24 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
                 hardline,
                 '}'
             ]);
+        }
 
-        case 'allow':
+        case 'allow': {
+            const afterAllowScope = node.scopesComment ? [` // ${node.scopesComment}`, hardline] : [line];
             return group(
                 concat([
                     'allow',
                     ' ',
                     join(', ', node.scopes),
                     ':',
-                    line,
+                    ...afterAllowScope,
                     'if',
                     ' ',
                     indent(join(hardline, path.map(print, 'content'))),
                     ';',
                 ])
             );
+        }
 
         case 'function-declaration': {
             const params = !node.params ? '()' : group(
@@ -171,6 +179,13 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
                 join('.', path.map(print, 'right'))
             ]);
 
+        case 'call':
+            return concat([
+                path.call(print, 'left'),
+                '.',
+                path.call(print, 'right')
+            ]);
+
         case 'connection':
             return group(concat([
                 node.operator,
@@ -185,6 +200,11 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
                 node.text
             ]);
 
+        case 'comments': {
+            const comments = node.comments.map(comment => '// ' + comment);
+            return join(hardline, comments);
+        }
+
         case 'text':
             return node.text;
     }
@@ -194,39 +214,39 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
 
 type Node = RootNode | VersionNode | ServiceNode | MatcherNode | AllowNode |
     FunctionDeclarationNode | FunctionCallNode | ReturnNode |
-    OperationNode | TextNode | ConnectionNode | VariableDeclarationNode |
-    CommentNode;
+    OperationNode | CallNode | TextNode | ConnectionNode |
+    VariableDeclarationNode | CommentNode | CommentsNode;
 
 type RootNode = {
     type: 'root';
-    version?: string[];
-    service: object;
-    functionsBefore: object[];
-    functionsAfter: object[];
+    content: (VersionNode | ServiceNode | FunctionDeclarationNode | CommentsNode)[];
 }
 
 type VersionNode = {
     type: 'version';
     version: string;
-    comment?: object;
+    comment: string | null;
 }
 
 type ServiceNode = {
     type: 'service';
     head: string[];
     content: object[];
+    comment: string | null;
 }
 
 type MatcherNode = {
     type: 'match';
     path: string;
     content: object[];
+    comment: string | null;
 }
 
 type AllowNode = {
     type: 'allow';
     scopes: string[];
     content: string[];
+    scopesComment: string | null;
 }
 
 type FunctionDeclarationNode = {
@@ -254,6 +274,12 @@ type OperationNode = {
     right: object[];
 }
 
+type CallNode = {
+    type: 'call';
+    left: object;
+    right: object;
+}
+
 type TextNode = {
     type: 'text';
     text: string;
@@ -274,4 +300,9 @@ type VariableDeclarationNode = {
 type CommentNode = {
     type: 'comment';
     text: string;
+}
+
+type CommentsNode = {
+    type: 'comments';
+    comments: string[];
 }
