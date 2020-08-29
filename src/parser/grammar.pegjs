@@ -30,7 +30,7 @@ Content
   { return content.flatMap(x => x).filter(definedNotEmpty); }
 
 Matcher
-  = _ MatchToken __ path:MatcherPath _
+  = _ MatchToken __ path:MatcherPath "/"? _
     "{" comment: EOL
     matcherBody: (_ Function* (Matcher/Allow) (Matcher/Allow/Function)* _)
     "}"
