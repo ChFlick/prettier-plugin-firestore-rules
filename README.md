@@ -11,6 +11,35 @@ A plugin for [prettier](https://prettier.io/) to enable autoformatting for [Clou
 
 A custom built parser for the rules is included.
 
+How to install it
+================
+
+With npm
+```
+npm i --save-dev prettier prettier-plugin-firestore-rules
+```
+
+With yarn
+```
+yarn add -D prettier prettier-plugin-firestore-rules
+```
+
+How to install it in the CLI
+==========================
+
+Generally
+```
+prettier -w <path/to/file>
+```
+
+Using yarn berry
+```
+yarn prettier -w <path/to/file>
+```
+
+![Example Usage](./example-usage.gif)
+
+
 To be done
 ==========
 
