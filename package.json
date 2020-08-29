@@ -1,6 +1,6 @@
 {
     "name": "prettier-plugin-firestore-rules",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "Firestore Rules formatter plugin for prettier",
     "main": "out/index.js",
     "files": [
