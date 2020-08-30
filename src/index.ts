@@ -1,4 +1,4 @@
-import { Parser, Plugin } from 'prettier';
+import { SupportLanguage, Parser, Printer, Plugin } from 'prettier';
 import { parse } from './parser/parser';
 import { print } from './printer';
 
@@ -17,23 +17,20 @@ const p: Parser = {
     },
 };
 
-export const languages = [
+export const languages: SupportLanguage[] = [
     {
-        // The language name
         name: 'firestore',
-        // Parsers that can parse this language.
-        // This can be built-in parsers, or parsers you have contributed via this plugin.
         parsers: ['firestore'],
         extensions: ['.rules'],
-        vscodelanguageids: ['firestorerules']
+        vscodeLanguageIds: ['firestorerules'],
     }
 ];
 
-export const parsers = {
+export const parsers: Record<string, Parser> = {
     firestore: p
 };
 
-export const printers = {
+export const printers: Record<string, Printer> = {
     'firestore': {
         print
     }
@@ -44,3 +41,5 @@ export const plugin: Plugin = {
     parsers,
     printers,
 };
+
+export { options } from './options';

@@ -12,7 +12,8 @@ const {
     softline
 } = doc.builders;
 
-export function print(path: FastPath, _options: ParserOptions, print: PrintFn): Doc {
+export function print(path: FastPath, options: ParserOptions, print: PrintFn): Doc {
+    const emptyLinesBetweenBlocks = options.emptyLinesBetweenBlocks
     const node: Node = path.getValue();
 
     if (!node) {
@@ -67,6 +68,7 @@ export function print(path: FastPath, _options: ParserOptions, print: PrintFn): 
             );
 
             return concat([
+                concat(new Array(emptyLinesBetweenBlocks).fill(line, 0, emptyLinesBetweenBlocks)),
                 group(
                     head
                 ),

@@ -39,6 +39,26 @@ yarn prettier -w <path/to/file>
 
 ![Example Usage](./example-usage.gif)
 
+Configuration
+=======
+Create a `.prettierrc` file and add your preferred configuration options.
+
+Configurations are optional.
+
+
+### Available Options
+- `emptyLinesBetweenBlocks`
+  - Default: `0`
+  - Adds empty lines between matcher blocks
+
+### `.prettierrc` example
+```
+{
+  "emptyLinesBetweenBlocks" : 1
+}
+```
+
+For more information see [Prettier documentation](https://prettier.io/docs/en/configuration.html).
 
 To be done
 ==========
@@ -68,5 +88,4 @@ To be done
             ;
   ```
 - Add formatter options:
-  - newlines after matchers/allows/functions
   - && at start or end of the line
