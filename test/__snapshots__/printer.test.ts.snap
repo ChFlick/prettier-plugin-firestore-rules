@@ -25,6 +25,15 @@ service cloud.firestore {
 }"
 `;
 
+exports[`the parser can format an \`in\` expression 1`] = `
+"rules_version = '2';
+service cloud.firestore {
+  function foo() {
+    return 1 in [1, 2];
+  }
+}"
+`;
+
 exports[`the parser can format an is condition 1`] = `
 "rules_version = '2';
 service cloud.firestore {

@@ -149,7 +149,7 @@ WordOrDollarWord
   { return text() }
   
 ValueOperator
-  = "=="/"!="/"<="/">="/"<"/">"
+  = "=="/"!="/"<="/">="/"<"/">"/"in"
   
 String
   = chars:("'" [^']+ "'")
@@ -170,7 +170,9 @@ EOL
   	{ return comment; }
 
 DecimalLiteral
-  = DecimalIntegerLiteral "." DecimalDigit* 
+  = DecimalIntegerLiteral
+  	{ return { type: "Literal", value: parseFloat(text()) }; }
+  / DecimalIntegerLiteral "." DecimalDigit* 
   	{ return { type: "Literal", value: parseFloat(text()) }; }
   / "." DecimalDigit+
   	{ return { type: "Literal", value: parseFloat(text()) }; }

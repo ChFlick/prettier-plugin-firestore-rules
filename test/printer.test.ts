@@ -270,6 +270,25 @@ describe('the parser', () => {
     expect(result).toMatchSnapshot();
   });
 
+  it('can format an `in` expression', () => {
+    const basicRule = `rules_version = '2';
+    service cloud.firestore {
+      function foo() {
+        return 1 in [1, 2]
+      }
+    }
+        `;
+
+    const result = format(basicRule, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parser: 'firestore' as any,
+      plugins: ['src/index.ts']
+    });
+
+    expect(result).toMatchSnapshot();
+  });
+
+
   it('can format the example rules', () => {
     const exampleRulesPath = resolve(__dirname + '/../example.rules');
     const exampleRules = readFileSync(exampleRulesPath).toString();
