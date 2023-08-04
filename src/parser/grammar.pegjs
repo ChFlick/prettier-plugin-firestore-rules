@@ -4,7 +4,7 @@
   }
 }
 Main
-  = content: (_ Version? _ Function* _ Service _ Function* _)
+  = content: (_ Version? (_ Function)* _ Service _ Function* _)
   { return { type: "root", content: content.flatMap(x => x).filter(definedNotEmpty) }; }
 
 AllowToken    = "allow"
@@ -32,7 +32,7 @@ Content
 Matcher
   = _ MatchToken __ path:MatcherPath "/"? _
     "{" comment: EOL
-    matcherBody: (_ Function* (Matcher/Allow) (Matcher/Allow/Function)* _)
+    matcherBody: ((_ Function)* (Matcher/Allow) (Matcher/Allow/Function)* _)
     "}"
   { return {type: "match", path, comment, content: matcherBody.flatMap(x => x).filter(definedNotEmpty)}; }
   
